@@ -3,3 +3,5 @@ AUTHORS
 ChangeLog
 *.egg-info
 .eggs
+
+.idea/
