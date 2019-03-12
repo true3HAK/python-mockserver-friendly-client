@@ -1,7 +1,21 @@
 import collections
 import json
+from enum import Enum
 
 import requests
+
+
+class RetrievedObjects(Enum):
+    logs = 'logs'
+    requests = 'requests'
+    recorded_expectations = 'recorded_expectations'
+    active_expectations = 'active_expectations'
+
+
+class RetrievedFormat(Enum):
+    java = 'java'
+    json = 'json'
+    log_entries = 'log_entries'
 
 
 class MockServerFriendlyClient(object):
@@ -24,7 +38,7 @@ class MockServerFriendlyClient(object):
             _Option("timeToLive", time_to_live, formatter=_to_time_to_live)
         )))
 
-    def expect(self, request, response, timing, time_to_live=None):
+    def expect(self, request, response, timing=None, time_to_live=None):
         self.stub(request, response, timing, time_to_live)
         self.expectations.append((request, timing))
 
@@ -35,6 +49,23 @@ class MockServerFriendlyClient(object):
                 "times": timing.for_verification()
             }))
             assert result.status_code == 202, result.content.decode('UTF-8').replace('\n', '\r\n')
+
+    def retrieve(self, obj_type, response_format, body):
+        """
+        Retrieve different objects from the mock server
+
+        :param obj_type: see `RetrievedObjects`
+        :param response_format: see `RetrievedFormat`
+        :param body: dict, pass params here, like: ```{"path": "/some/path"}```
+        :return: Response from the `requests`
+        """
+        return self._call(
+            command='retrieve?type={obj_type}&format={response_format}'.format(
+                obj_type=obj_type,
+                response_format=response_format
+            ),
+            data=json.dumps(body)
+        )
 
 
 def request(method=None, path=None, querystring=None, body=None, headers=None, cookies=None):
