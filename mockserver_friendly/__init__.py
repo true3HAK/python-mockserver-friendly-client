@@ -30,6 +30,11 @@ class MockServerFriendlyClient(object):
         self.expectations = []
         self._call("reset")
 
+    def clear(self):
+        for expect in self.expectations:
+            expect = json.dumps(expect[0])
+            self._call("clear", data=expect)
+
     def stub(self, request, response, timing=None, time_to_live=None):
         self._call("expectation", json.dumps(_non_null_options_to_dict(
             _Option("httpRequest", request),
